@@ -23,7 +23,8 @@
     "jscs": "^3.0.7",
     "jscs-preset-loris": "^1.2.0",
     "jshint": "^2.9.5",
-    "lab": "^14.2.0"
+    "lab": "^14.2.0",
+    "sinon": "^3.2.0"
   },
   "dependencies": {
     "axios": "^0.16.2",
