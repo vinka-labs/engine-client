@@ -1,6 +1,6 @@
 {
   "name": "@vinka/engine-client",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "HTTP Engine Client",
   "main": "index.js",
   "scripts": {
