@@ -54,7 +54,7 @@ class EngineHttpClient {
         function performAuth(self) {
             return auth(self.host, self.user, self.pass).then(resp => {
                 const data = resp.data;
-                this._log('info', `${self.user} logged in`);
+                self._log('info', `${self.user} logged in`);
                 self.hawk = {
                     credentials: {
                         id: data.id,
