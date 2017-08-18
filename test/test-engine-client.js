@@ -33,7 +33,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.afterEach(done => {
-        EngineClient.internals.request.restore();
+        if (EngineClient.internals.request.restore) {
+            EngineClient.internals.request.restore();
+        }
         request = null;
         done();
     });
@@ -71,6 +73,26 @@ lab.experiment('EngineClient', function() {
                 data: null,
                 headers: {Authorization: ''},
             }]);
+        });
+    });
+
+    lab.test('Get from unknown host', () => {
+        request.restore();
+        const client = new EngineClient('foo.jedi.gov', 'john', 'doe');
+        return client.get('one').then(() => {
+            Code.fail('should fail');
+        }, err => {
+            expect(err.message).to.match(/ECONN/);
+        });
+    });
+
+    lab.test('Get from closed port', () => {
+        request.restore();
+        const client = new EngineClient('www.google.com:11118', 'john', 'doe');
+        return client.get('one').then(() => {
+            Code.fail('should fail');
+        }, err => {
+            expect(err.message).to.match(/EHOST/);
         });
     });
 });

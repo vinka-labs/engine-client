@@ -28,7 +28,6 @@ class EngineHttpClient {
     }
 
     _exec(method, path, body, logsz='') {
-
         body = body || null;
         let url = `${this.host}/${path}`;
 
@@ -67,9 +66,15 @@ class EngineHttpClient {
         }
 
         const error = (reject, err) => {
-            this._log('error',
-                `es> ${method} ${url} -> ${err.response.data.statusCode} (${err.response.data.message})`);
-            reject(boom.create(err.response.data.statusCode, err.response.data.message));
+            if (!err.response) {
+                this._log('error',
+                    `es> ${method} ${url} -> ${err.message}`);
+                reject(err);
+            } else {
+                this._log('error',
+                    `es> ${method} ${url} -> ${err.response.data.statusCode} (${err.response.data.message})`);
+                reject(boom.create(err.response.data.statusCode, err.response.data.message));
+            }
         };
 
         return new Promise((resolve, reject) => {
