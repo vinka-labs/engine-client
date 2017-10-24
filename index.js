@@ -66,10 +66,21 @@ class EngineHttpClient {
         }
 
         const error = (reject, err) => {
-            if (!err.response) {
+            if (!err) {
+                this._log('error',
+                    `es> ${method} ${url} -> unknown error`);
+                reject(err);
+            } else if (!err.response || !err.response.data) {
                 this._log('error',
                     `es> ${method} ${url} -> ${err.message}`);
                 reject(err);
+            } else if (isNaN(err.response.data.statusCode)) {
+                // not sure under which circumstances this happens but it does
+                // and we can't give NaN statusCode to boom.create() or it will
+                // loose it's marbles.
+                this._log('error',
+                    `es> ${method} ${url} -> error: ${err.response.data}`);
+                reject(boom.create(500, err.response.data));
             } else {
                 this._log('error',
                     `es> ${method} ${url} -> ${err.response.data.statusCode} (${err.response.data.message})`);
@@ -84,7 +95,7 @@ class EngineHttpClient {
                 resolve(result.data);
             })
             .catch(err => {
-                if (!err.response || err.response.status !== 401) {
+                if (!err || !err.response || err.response.status !== 401) {
                     return error(reject, err);
                 }
 

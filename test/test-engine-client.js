@@ -12,7 +12,7 @@ const expect = Code.expect;
 const sinon = require('sinon');
 const EngineClient = require('../index');
 
-const getLog = () => {
+const createLog = () => {
     const stash = [];
     return {
         info: msg => stash.push(msg),
@@ -47,7 +47,7 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get with log', () => {
-        const log = getLog();
+        const log = createLog();
         request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe', log);
         return client.get('trip').then(() => {
@@ -93,6 +93,38 @@ lab.experiment('EngineClient', function() {
             Code.fail('should fail');
         }, err => {
             expect(err.message).to.match(/EHOST/);
+        });
+    });
+
+    lab.test('Get undefined error response', () => {
+        request.returns(Promise.reject());
+        const client = new EngineClient('www.localhost.com');
+        return client.delete('/bautista').then(() => {
+            Code.fail('should fail');
+        }, err => {
+            expect(err).to.be.undefined();
+        });
+    });
+
+    lab.test('Get weird error response', () => {
+        request.returns(Promise.reject({response: {thirdbase: 'donaldson'}}));
+        const client = new EngineClient('www.localhost.com');
+        return client.delete('/encarnacion').then(() => {
+            Code.fail('should fail');
+        }, err => {
+            expect(err).to.be.equal({response: {thirdbase: 'donaldson'}});
+        });
+    });
+
+    lab.test('Get even weirder error response', () => {
+        request.returns(Promise.reject({response: {data: 'donaldson'}}));
+        const client = new EngineClient('www.localhost.com');
+        return client.delete('/encarnacion').then(() => {
+            Code.fail('should fail');
+        }, err => {
+            expect(err.isBoom).to.be.true();
+            expect(err.isServer).to.be.true();
+            expect(err.output.statusCode).to.be.equal(500);
         });
     });
 });
