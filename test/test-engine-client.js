@@ -62,18 +62,42 @@ lab.experiment('EngineClient', function() {
         });
     });
 
-    lab.test('Get without log', () => {
+    lab.test('Get without log', async () => {
         request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe');
-        return client.get('trip').then(() => {
-            expect(request.callCount).to.be.equal(1);
-            expect(request.getCall(0).args).to.be.equal([{
-                method: 'GET',
-                url: 'localhost/trip',
-                data: null,
-                headers: {Authorization: ''},
-            }]);
-        });
+        await client.get('trip');
+        expect(request.callCount).to.be.equal(1);
+        expect(request.getCall(0).args).to.be.equal([{
+            method: 'GET',
+            url: 'localhost/trip',
+            data: null,
+            headers: {Authorization: ''},
+        }]);
+    });
+
+    lab.test('Get with log but suppress log line', async () => {
+        const log = createLog();
+        request.returns(Promise.resolve({data: {}}));
+        const client = new EngineClient('localhost', 'john', 'doe', log);
+
+        await client.get('trip', null);
+        expect(request.callCount).to.be.equal(1);
+        expect(request.getCall(0).args).to.be.equal([{
+            method: 'GET',
+            url: 'localhost/trip',
+            data: null,
+            headers: {Authorization: ''},
+        }]);
+        expect(log.getStash()).to.be.equal([]);
+
+        await client.post('trip', {}, null);
+        expect(log.getStash()).to.be.equal([]);
+
+        await client.patch('trip/1', {}, null);
+        expect(log.getStash()).to.be.equal([]);
+
+        await client.delete('trip/1', null);
+        expect(log.getStash()).to.be.equal([]);
     });
 
     lab.test('Get from unknown host', () => {

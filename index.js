@@ -27,6 +27,10 @@ class EngineHttpClient {
         }
     }
 
+    /**
+     * @param [logsz='']{String} - optional log string to be written after the default msg.
+     *    If null, the default msg is not written.
+     */
     _exec(method, path, body, logsz='') {
         body = body || null;
         let url = `${this.host}/${path}`;
@@ -55,6 +59,7 @@ class EngineHttpClient {
             return auth(self.host, self.user, self.pass).then(resp => {
                 const data = resp.data;
                 self._log('info', `${self.user} logged in`);
+                self._log('info', data);
                 self.hawk = {
                     credentials: {
                         id: data.id,
@@ -88,10 +93,20 @@ class EngineHttpClient {
             }
         };
 
+        const log = (retry=false) => {
+            if (logsz !== null) {
+                if (retry) {
+                    this._log('info', `es> ${method} ${url} OK ${logsz} (After retry)`);
+                } else {
+                    this._log('info', `es> ${method} ${url} OK ${logsz}`);
+                }
+            }
+        };
+
         return new Promise((resolve, reject) => {
             req(this.hawk)
             .then(result => {
-                this._log('info', `es> ${method} ${url} OK ${logsz}`);
+                log();
                 resolve(result.data);
             })
             .catch(err => {
@@ -105,7 +120,7 @@ class EngineHttpClient {
                 .then(() => {
                     return req(this.hawk)
                     .then(result => {
-                        this._log('info', `es> ${method} ${url} OK  ${logsz} (After retry)`);
+                        log(true);
                         resolve(result.data);
                     })
                     .catch(error.bind(null, reject));
@@ -115,20 +130,36 @@ class EngineHttpClient {
         });
     }
 
-    get(path) {
-        return this._exec('GET', path, null);
+    /**
+     * @param {string} [logsz] - Optional log string to amend to default msg.
+     *    null suppresses the log msg entirely.
+     */
+    get(path, logsz) {
+        return this._exec('GET', path, null, logsz);
     }
 
+    /**
+     * @param {string} [logsz] - Optional log string to amend to default msg.
+     *    null suppresses the log msg entirely.
+     */
     post(path, body, logsz) {
         return this._exec('POST', path, body, logsz);
     }
 
-    patch(path, body) {
-        return this._exec('PATCH', path, body);
+    /**
+     * @param {string} [logsz] - Optional log string to amend to default msg.
+     *    null suppresses the log msg entirely.
+     */
+    patch(path, body, logsz) {
+        return this._exec('PATCH', path, body, logsz);
     }
 
-    delete(path) {
-        return this._exec('DELETE', path, null);
+    /**
+     * @param {string} [logsz] - Optional log string to amend to default msg.
+     *    null suppresses the log msg entirely.
+     */
+    delete(path, logsz) {
+        return this._exec('DELETE', path, null, logsz);
     }
 }
 
