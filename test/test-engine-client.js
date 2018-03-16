@@ -151,6 +151,29 @@ lab.experiment('EngineClient', function() {
             expect(err.output.statusCode).to.be.equal(500);
         });
     });
+
+    lab.test('Get Not Found', async () => {
+        request.returns(Promise.reject({response: {data: 'donaldson', status: 400}}));
+        const client = new EngineClient('http://google.com');
+        try {
+            const response = await client.get('/w4w4w');
+            Code.fail('should fail');
+        } catch (e) {
+            expect(e.output.statusCode).to.be.equal(400);
+        }
+    });
+});
+
+lab.experiment('HTTP tests', () => {
+    lab.test('Get Not Found', async () => {
+        const client = new EngineClient('http://google.com');
+        try {
+            const response = await client.get('/w4w4w');
+            Code.fail('should fail');
+        } catch (e) {
+            expect(e.output.statusCode).to.be.equal(404);
+        }
+    });
 });
 
 //
