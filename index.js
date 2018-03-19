@@ -84,12 +84,12 @@ class EngineHttpClient {
                 // and we can't give NaN statusCode to boom.create() or it will
                 // loose it's marbles.
                 this._log('error',
-                    `es> ${method} ${url} -> error: ${err.response.data}`);
-                reject(boom.create(500, err.response.data));
+                    `es> ${method} ${url} -> error: ${JSON.stringify(err.response.data)}`);
+                reject(boom.create(500, JSON.stringify(err.response.data)));
             } else {
                 this._log('error',
-                    `es> ${method} ${url} -> ${err.response.status} (${err.response.data})`);
-                reject(boom.create(err.response.status, err.response.data));
+                    `es> ${method} ${url} -> ${err.response.status} (${JSON.stringify(err.response.data)})`);
+                reject(boom.create(err.response.status, JSON.stringify(err.response.data)));
             }
         };
 

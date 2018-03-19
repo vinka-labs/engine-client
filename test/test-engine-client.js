@@ -162,16 +162,42 @@ lab.experiment('EngineClient', function() {
             expect(e.output.statusCode).to.be.equal(400);
         }
     });
+
+    lab.test('Error with object', async () => {
+        request.returns(Promise.reject({response: {data: {code: 444, msg: 'hiihoo'}, status: 400}}));
+        const client = new EngineClient('https://es.tre-test.vinka.cloud');
+        try {
+            const response = await client.get('w4w4w');
+            Code.fail('should fail');
+        } catch (e) {
+            expect(e.output.statusCode).to.be.equal(400);
+            expect(e.output.payload).to.be.equal({
+                statusCode: 400,
+                error: "Bad Request",
+                message: `{"code":444,"msg":"hiihoo"}`,
+            });
+        }
+    });
 });
 
 lab.experiment('HTTP tests', () => {
     lab.test('Get Not Found', async () => {
-        const client = new EngineClient('http://google.com');
+        const log = createLog();
+        const client = new EngineClient('https://es.tre-test.vinka.fi', null, null, log);
         try {
-            const response = await client.get('/w4w4w');
+            const response = await client.get('w4w4w');
             Code.fail('should fail');
         } catch (e) {
             expect(e.output.statusCode).to.be.equal(404);
+            expect(e.output.payload).to.be.equal({
+                statusCode: 404,
+                error: "Not Found",
+                message: `{"statusCode":404,"error":"Not Found","message":"Not Found"}`,
+            });
+            expect(log.getStash()).to.have.length(1);
+            expect(log.getStash()).to.be.equal([
+                `es> GET https://es.tre-test.vinka.fi/w4w4w -> 404 ({"statusCode":404,"error":"Not Found","message":"Not Found"})`
+            ]);
         }
     });
 });
