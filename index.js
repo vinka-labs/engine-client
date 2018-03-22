@@ -150,6 +150,14 @@ class EngineHttpClient {
      * @param {string} [logsz] - Optional log string to amend to default msg.
      *    null suppresses the log msg entirely.
      */
+    put(path, body, logsz) {
+        return this._exec('PUT', path, body, logsz);
+    }
+
+    /**
+     * @param {string} [logsz] - Optional log string to amend to default msg.
+     *    null suppresses the log msg entirely.
+     */
     patch(path, body, logsz) {
         return this._exec('PATCH', path, body, logsz);
     }
