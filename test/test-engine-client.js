@@ -75,6 +75,19 @@ lab.experiment('EngineClient', function() {
         }]);
     });
 
+    lab.test('PUT', async () => {
+        request.returns(Promise.resolve({data: {}}));
+        const client = new EngineClient('localhost', 'john', 'doe');
+        await client.put('trip', {one: 'two'});
+        expect(request.callCount).to.be.equal(1);
+        expect(request.getCall(0).args).to.be.equal([{
+            method: 'PUT',
+            url: 'localhost/trip',
+            data: {one: 'two'},
+            headers: {Authorization: ''},
+        }]);
+    });
+
     lab.test('Get with log but suppress log line', async () => {
         const log = createLog();
         request.returns(Promise.resolve({data: {}}));
