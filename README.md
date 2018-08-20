@@ -1,5 +1,9 @@
 # HTTP Engine Client
 
+Installation
+
+    npm install @vinka/engine-client
+
 Example usage:
 
 ```javascript
