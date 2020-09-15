@@ -7,10 +7,6 @@ const boom = require('boom');
 const axios = require('axios');
 const Hawk = require('hawk');
 
-const internals = {
-    request: axios,
-};
-
 class EngineHttpClient {
 
     constructor(host, user, pass, log) {
@@ -19,6 +15,7 @@ class EngineHttpClient {
         this.user = user;
         this.pass = pass;
         this.log = log;
+        this.http = axios.create({ baseURL: host });
     }
 
     _log(level, msg) {
@@ -35,9 +32,9 @@ class EngineHttpClient {
         body = body || null;
         let url = `${this.host}/${path}`;
 
-        function req(hawk={}) {
+        const req = (hawk={}) => {
             const header = Hawk.client.header(url, method, {credentials: hawk.credentials});
-            return internals.request({
+            return this.http.request({
                 method,
                 url,
                 data: body,
@@ -45,17 +42,17 @@ class EngineHttpClient {
                     Authorization: header.field,
                 }
             });
-        }
+        };
 
-        function auth(host, user, pass) {
-            return internals.request({
+        const auth = (host, user, pass) => {
+            return this.http.request({
                 url: `${host}/auth/token`,
                 method: 'POST',
                 data: {username: user, password: pass},
             });
-        }
+        };
 
-        function performAuth(self) {
+        const performAuth = (self) => {
             return auth(self.host, self.user, self.pass).then(resp => {
                 const data = resp.data;
                 self._log('info', `${self.user} logged in`);
@@ -68,7 +65,7 @@ class EngineHttpClient {
                     }
                 };
             });
-        }
+        };
 
         const error = (reject, err) => {
             if (!err) {
@@ -172,10 +169,6 @@ class EngineHttpClient {
 }
 
 module.exports = EngineHttpClient;
-
-if (process.env.NODE_ENV === 'test') {
-    module.exports.internals = internals;
-}
 
 //
 //  engine-client.js ends here

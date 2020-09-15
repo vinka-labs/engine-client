@@ -25,18 +25,11 @@ const createLog = () => {
 };
 
 lab.experiment('EngineClient', function() {
-    let request;
-
     lab.beforeEach(done => {
-        request = sinon.stub(EngineClient.internals, 'request');
         done();
     });
 
     lab.afterEach(done => {
-        if (EngineClient.internals.request.restore) {
-            EngineClient.internals.request.restore();
-        }
-        request = null;
         done();
     });
 
@@ -48,8 +41,9 @@ lab.experiment('EngineClient', function() {
 
     lab.test('Get with log', () => {
         const log = createLog();
-        request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe', log);
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.resolve({data: {}}));
         return client.get('trip').then(() => {
             expect(request.callCount).to.be.equal(1);
             expect(request.getCall(0).args).to.be.equal([{
@@ -63,8 +57,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get without log', async () => {
-        request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.resolve({data: {}}));
         await client.get('trip');
         expect(request.callCount).to.be.equal(1);
         expect(request.getCall(0).args).to.be.equal([{
@@ -76,8 +71,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('PUT', async () => {
-        request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.resolve({data: {}}));
         await client.put('trip', {one: 'two'});
         expect(request.callCount).to.be.equal(1);
         expect(request.getCall(0).args).to.be.equal([{
@@ -90,8 +86,9 @@ lab.experiment('EngineClient', function() {
 
     lab.test('Get with log but suppress log line', async () => {
         const log = createLog();
-        request.returns(Promise.resolve({data: {}}));
         const client = new EngineClient('localhost', 'john', 'doe', log);
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.resolve({data: {}}));
 
         await client.get('trip', null);
         expect(request.callCount).to.be.equal(1);
@@ -114,7 +111,6 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get from unknown host', () => {
-        request.restore();
         const client = new EngineClient('foo.jedi.gov', 'john', 'doe');
         return client.get('one').then(() => {
             Code.fail('should fail');
@@ -124,7 +120,6 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get from closed port', () => {
-        request.restore();
         const client = new EngineClient('www.google.com:11118', 'john', 'doe');
         return client.get('one').then(() => {
             Code.fail('should fail');
@@ -134,8 +129,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get undefined error response', () => {
-        request.returns(Promise.reject());
         const client = new EngineClient('www.localhost.com');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.reject());
         return client.delete('/bautista').then(() => {
             Code.fail('should fail');
         }, err => {
@@ -144,8 +140,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get weird error response', () => {
-        request.returns(Promise.reject({response: {thirdbase: 'donaldson'}}));
         const client = new EngineClient('www.localhost.com');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.reject({response: {thirdbase: 'donaldson'}}));
         return client.delete('/encarnacion').then(() => {
             Code.fail('should fail');
         }, err => {
@@ -154,8 +151,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get even weirder error response', () => {
-        request.returns(Promise.reject({response: {data: 'donaldson'}}));
         const client = new EngineClient('www.localhost.com');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.reject({response: {data: 'donaldson'}}));
         return client.delete('/encarnacion').then(() => {
             Code.fail('should fail');
         }, err => {
@@ -166,8 +164,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Get Not Found', async () => {
-        request.returns(Promise.reject({response: {data: 'donaldson', status: 400}}));
         const client = new EngineClient('http://google.com');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.reject({response: {data: 'donaldson', status: 400}}));
         try {
             const response = await client.get('/w4w4w');
             Code.fail('should fail');
@@ -177,8 +176,9 @@ lab.experiment('EngineClient', function() {
     });
 
     lab.test('Error with object', async () => {
-        request.returns(Promise.reject({response: {data: {code: 444, msg: 'hiihoo'}, status: 400}}));
         const client = new EngineClient('https://es.tre-test.vinka.cloud');
+        const request = sinon.stub(client.http, 'request');
+        request.returns(Promise.reject({response: {data: {code: 444, msg: 'hiihoo'}, status: 400}}));
         try {
             const response = await client.get('w4w4w');
             Code.fail('should fail');
@@ -196,7 +196,7 @@ lab.experiment('EngineClient', function() {
 lab.experiment('HTTP tests', () => {
     lab.test('Get Not Found', async () => {
         const log = createLog();
-        const client = new EngineClient('https://es.tre-test.vinka.fi', null, null, log);
+        const client = new EngineClient('https://es.demo.vinka.cloud', null, null, log);
         try {
             const response = await client.get('w4w4w');
             Code.fail('should fail');
@@ -209,7 +209,7 @@ lab.experiment('HTTP tests', () => {
             });
             expect(log.getStash()).to.have.length(1);
             expect(log.getStash()).to.be.equal([
-                `es> GET https://es.tre-test.vinka.fi/w4w4w -> 404 ({"statusCode":404,"error":"Not Found","message":"Not Found"})`
+                `es> GET https://es.demo.vinka.cloud/w4w4w -> 404 ({"statusCode":404,"error":"Not Found","message":"Not Found"})`
             ]);
         }
     });
